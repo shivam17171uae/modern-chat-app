@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FiPhone, FiVideo, FiMoreVertical, FiSmile } from 'react-icons/fi';
+import { FiPhone, FiVideo, FiMoreVertical, FiSmile, FiArrowLeft } from 'react-icons/fi';
 import { IoSend } from 'react-icons/io5';
 import { GrAttachment } from 'react-icons/gr';
 import { BsCheck, BsCheck2, BsCheck2All } from 'react-icons/bs';
@@ -52,7 +52,7 @@ const MessageInput = ({ onSendMessage, socket, chat }) => {
         const formData = new FormData();
         formData.append('file', file);
         try {
-            const response = await fetch('http://localhost:8080/upload', { method: 'POST', body: formData });
+            const response = await fetch(`${SERVER_URL}/upload`, { method: 'POST', body: formData });
             const data = await response.json();
             if (response.ok) { onSendMessage(data.filePath, 'image'); }
             else { console.error('File upload failed:', data); }
@@ -86,7 +86,6 @@ const TypingIndicator = ({ typingUsers, chat, currentUser }) => {
         return <div className="typing-indicator-placeholder" />;
     }
 
-    // Only show typing indicator for the currently active chat
     if (chat.type === 'group' || (chat.type === 'personal' && otherTypingUsers.includes(chat.username))) {
         const usersString = otherTypingUsers.join(', ');
         const verb = otherTypingUsers.length > 1 ? 'are' : 'is';
@@ -96,7 +95,7 @@ const TypingIndicator = ({ typingUsers, chat, currentUser }) => {
     return <div className="typing-indicator-placeholder" />;
 }
 
-const Conversation = ({ chat, messages, currentUser, onSendMessage, typingUsers, socket }) => {
+const Conversation = ({ chat, messages, currentUser, onSendMessage, typingUsers, socket, onBack }) => {
     const messagesEndRef = useRef(null);
     useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
@@ -110,6 +109,7 @@ const Conversation = ({ chat, messages, currentUser, onSendMessage, typingUsers,
         <div className="conversation-panel">
             <div className="panel-header">
                 <div className="header-info">
+                    <button onClick={onBack} className="back-button"><FiArrowLeft /></button>
                     <div className="avatar-wrapper"><Jdenticon size="40" value={chatName} /></div>
                     <div><h4>{chatName}</h4></div>
                 </div>

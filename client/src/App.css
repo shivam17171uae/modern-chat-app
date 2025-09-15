@@ -575,3 +575,72 @@ body {
   align-items: center;
   padding-right: 16px;
 }
+
+/* This block of CSS will only apply if the screen width is 768px or less */
+@media (max-width: 768px) {
+  .app-layout {
+    /* Allow the layout to scroll horizontally if needed, though we'll try to avoid it */
+    overflow-x: hidden;
+    position: relative;
+    /* Needed for positioning child elements */
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  .chat-list-panel {
+    width: 100%;
+    min-width: 100%;
+    border-right: none;
+    /* This makes the panel take up the full view */
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .conversation-panel {
+    width: 100%;
+    min-width: 100%;
+    /* Position this panel off-screen to the right initially */
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 20;
+    /* Sit on top of the chat list */
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  /* NEW CLASS: This class will be added in JS to show the conversation view */
+  .conversation-visible .chat-list-panel {
+    transform: translateX(-100%);
+  }
+
+  .conversation-visible .conversation-panel {
+    transform: translateX(0);
+  }
+
+  /* Hide the details panel completely on mobile */
+  .chat-detail-panel {
+    display: none;
+  }
+
+  /* We need a back button to get from the conversation to the chat list */
+  .back-button {
+    display: block;
+    /* Show the button on mobile */
+    background: none;
+    border: none;
+    color: var(--icon-color-alt);
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+}
+
+/* Hide the back button on desktop by default */
+.back-button {
+  display: none;
+}

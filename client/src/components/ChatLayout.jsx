@@ -5,7 +5,8 @@ import Conversation from './Conversation';
 import ChatDetail from './ChatDetail';
 import CreateGroupModal from './CreateGroupModal';
 
-const SERVER_URL = import.meta.env.PROD ? window.location.host : 'http://localhost:8080';
+// This line handles connecting to the correct server URL in development vs. production
+const SERVER_URL = import.meta.env.PROD ? '' : 'http://localhost:8080';
 const socket = io(SERVER_URL);
 
 const ChatLayout = ({ username }) => {
@@ -14,11 +15,13 @@ const ChatLayout = ({ username }) => {
     const [activeChat, setActiveChat] = useState(null);
     const [messages, setMessages] = useState({});
     const [isCreatingGroup, setIsCreatingGroup] = useState(false);
-    const [lastRead, setLastRead] = useState({});
-    const [typingUsers, setTypingUsers] = useState([]); // Added typingUsers back
+    const [typingUsers, setTypingUsers] = useState([]);
 
-    const notificationSoundRef = useRef(new Audio('/message.mp3'));
+    // NEW: State to manage mobile view
+    const [isConversationVisible, setIsConversationVisible] = useState(false);
+
     const activeChatRef = useRef(activeChat);
+    const notificationSoundRef = useRef(new Audio('/message.mp3'));
     useEffect(() => { activeChatRef.current = activeChat; }, [activeChat]);
 
     const handleNotification = (newMessage) => {
@@ -54,31 +57,42 @@ const ChatLayout = ({ username }) => {
         socket.on('receive_private_message', messageListener);
         socket.on('receive_group_message', messageListener);
 
+        socket.on('messages_status_updated', ({ roomId, updatedMessages }) => {
+            setMessages(prev => {
+                if (!prev[roomId]) return prev;
+                const newRoomMessages = prev[roomId].map(msg => {
+                    const update = updatedMessages.find(u => u.id === msg.id);
+                    return update ? { ...msg, status: update.status } : msg;
+                });
+                return { ...prev, [roomId]: newRoomMessages };
+            });
+        });
+
         socket.on('user_typing', ({ username: typingUsername }) => setTypingUsers(prev => [...new Set([...prev, typingUsername])]));
         socket.on('user_stop_typing', ({ username: typingUsername }) => setTypingUsers(prev => prev.filter(user => user !== typingUsername)));
 
         return () => {
             socket.off('online_users'); socket.off('user_groups'); socket.off('new_group_created');
             socket.off('chat_history'); socket.off('receive_private_message'); socket.off('receive_group_message');
-            socket.off('user_typing'); socket.off('user_stop_typing');
+            socket.off('messages_status_updated'); socket.off('user_typing'); socket.off('user_stop_typing');
         };
     }, [username]);
 
     const handleSelectChat = (chat) => {
         setActiveChat(chat);
+        setIsConversationVisible(true); // Switch to conversation view on mobile
+
         if (chat.type === 'group') {
             socket.emit('get_group_history', chat.id);
-            const roomId = `group-${chat.id}`;
-            const roomMessages = messages[roomId] || [];
-            if (roomMessages.length > 0) {
-                const lastMessageId = roomMessages[roomMessages.length - 1].id;
-                setLastRead(prev => ({ ...prev, [roomId]: lastMessageId }));
-            }
         } else {
             socket.emit('get_chat_history', chat.username);
             const roomId = [username, chat.username].sort().join('--');
             socket.emit('mark_as_read', { roomId, readerUsername: username });
         }
+    };
+
+    const handleBackToList = () => {
+        setIsConversationVisible(false); // Switch back to chat list view
     };
 
     const handleSendMessage = (messageContent, type = 'text') => {
@@ -112,15 +126,14 @@ const ChatLayout = ({ username }) => {
         const roomId = `group-${group.id}`;
         const roomMessages = messages[roomId] || [];
         const lastMessage = roomMessages[roomMessages.length - 1];
-        const lastReadMessageId = lastRead[roomId] || 0;
-        const unreadCount = roomMessages.filter(msg => msg.id > lastReadMessageId && msg.author !== username).length;
+        const unreadCount = roomMessages.filter(msg => msg.author !== username).length; // Simplified for now
         let lastMessagePreview = 'No messages yet';
         if (lastMessage) { lastMessagePreview = lastMessage.type === 'image' ? '📷 Image' : `${lastMessage.author}: ${lastMessage.message}`; }
         return { ...group, lastMessage: lastMessagePreview, timestamp: lastMessage ? lastMessage.time : '', unreadCount };
     });
 
     return (
-        <>
+        <div className={isConversationVisible ? 'conversation-visible' : ''}>
             {isCreatingGroup && <CreateGroupModal onlineUsers={onlineUsers} onCreateGroup={handleCreateGroup} onClose={() => setIsCreatingGroup(false)} />}
             <ChatList
                 users={usersWithChatInfo}
@@ -136,9 +149,10 @@ const ChatLayout = ({ username }) => {
                 onSendMessage={handleSendMessage}
                 typingUsers={typingUsers}
                 socket={socket}
+                onBack={handleBackToList}
             />
             <ChatDetail chat={activeChat} />
-        </>
+        </div>
     );
 };
 
