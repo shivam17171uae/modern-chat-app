@@ -10,8 +10,7 @@ const MobileLayout = ({
     messages,
     currentUser,
     onSendMessage,
-    typingUsers,
-    socket,
+    typingInfo, // <-- UPDATED: Changed from typingUsers to typingInfo
     onNewGroup,
 }) => {
     const [isConversationVisible, setIsConversationVisible] = useState(false);
@@ -29,15 +28,13 @@ const MobileLayout = ({
         ? (activeChat.type === 'group' ? `group-${activeChat.id}` : [currentUser, activeChat.username].sort().join('--'))
         : null;
 
-    // --- THIS IS THE FIX ---
-    // We add the "mobile-layout" class to the main div so the CSS can target it.
     return (
         <div className={`mobile-layout ${isConversationVisible ? 'conversation-visible' : ''}`}>
             <ChatList
                 users={users}
                 groups={groups}
                 onSelectChat={handleSelectChatMobile}
-                activeChatId={activeChat?.id}
+                activeChatId={activeChat?.id || activeChat?.username}
                 onNewGroup={onNewGroup}
             />
             <Conversation
@@ -45,9 +42,8 @@ const MobileLayout = ({
                 messages={messages[currentRoomId] || []}
                 currentUser={currentUser}
                 onSendMessage={onSendMessage}
-                typingUsers={typingUsers}
-                socket={socket}
-                onBack={handleBackToList} // Pass the back handler
+                typingInfo={typingInfo} // <-- UPDATED: Pass the new typingInfo prop
+                onBack={handleBackToList}
             />
         </div>
     );

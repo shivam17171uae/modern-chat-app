@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 import LoginScreen from './components/LoginScreen';
-import ChatContainer from './components/ChatContainer'; // <-- IMPORT THE NEW CONTAINER
+import ChatContainer from './components/ChatContainer';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -19,7 +19,8 @@ function App() {
       {!isLoggedIn ? (
         <LoginScreen onLogin={handleLogin} />
       ) : (
-        <ChatContainer username={username} /> // <-- RENDER THE NEW CONTAINER
+        // ChatContainer will now manage the CallModal internally
+        <ChatContainer username={username} />
       )}
     </div>
   );

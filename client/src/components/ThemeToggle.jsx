@@ -6,7 +6,7 @@ const ThemeToggle = () => {
     const { theme, toggleTheme } = useTheme();
 
     return (
-        <button onClick={toggleTheme} className="theme-toggle-button">
+        <button onClick={toggleTheme} className="theme-toggle-button action-icon">
             {theme === 'light' ? <FiMoon /> : <FiSun />}
         </button>
     );
