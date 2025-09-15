@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import './App.css';
-import LoginScreen from './components/LoginScreen'; // <-- IMPORT the component
-import ChatLayout from './components/ChatLayout';
-// useTheme is not used here, so we can remove it for now.
+import LoginScreen from './components/LoginScreen';
+import ChatContainer from './components/ChatContainer'; // <-- IMPORT THE NEW CONTAINER
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -20,7 +19,7 @@ function App() {
       {!isLoggedIn ? (
         <LoginScreen onLogin={handleLogin} />
       ) : (
-        <ChatLayout username={username} />
+        <ChatContainer username={username} /> // <-- RENDER THE NEW CONTAINER
       )}
     </div>
   );

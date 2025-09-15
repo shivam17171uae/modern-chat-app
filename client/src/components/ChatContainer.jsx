@@ -1,24 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
-import ChatList from './ChatList';
-import Conversation from './Conversation';
-import ChatDetail from './ChatDetail';
+import DesktopLayout from './DesktopLayout';
+import MobileLayout from './MobileLayout';
 import CreateGroupModal from './CreateGroupModal';
+import { useMediaQuery } from '../hooks/useMediaQuery'; // Import the new hook
 
-// This line handles connecting to the correct server URL in development vs. production
 const SERVER_URL = import.meta.env.PROD ? '' : 'http://localhost:8080';
 const socket = io(SERVER_URL);
 
-const ChatLayout = ({ username }) => {
+const ChatContainer = ({ username }) => {
     const [onlineUsers, setOnlineUsers] = useState([]);
     const [groups, setGroups] = useState([]);
     const [activeChat, setActiveChat] = useState(null);
     const [messages, setMessages] = useState({});
     const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+    const [lastRead, setLastRead] = useState({});
     const [typingUsers, setTypingUsers] = useState([]);
-
-    // NEW: State to manage mobile view
-    const [isConversationVisible, setIsConversationVisible] = useState(false);
 
     const activeChatRef = useRef(activeChat);
     const notificationSoundRef = useRef(new Audio('/message.mp3'));
@@ -27,6 +24,7 @@ const ChatLayout = ({ username }) => {
     const handleNotification = (newMessage) => {
         const { author, message, type, roomId } = newMessage;
         const currentActiveChat = activeChatRef.current;
+
         const chatSourceId = roomId.startsWith('group-') ? parseInt(roomId.split('-')[1]) : author;
         const isChatOpen = currentActiveChat && currentActiveChat.id === chatSourceId;
 
@@ -80,19 +78,19 @@ const ChatLayout = ({ username }) => {
 
     const handleSelectChat = (chat) => {
         setActiveChat(chat);
-        setIsConversationVisible(true); // Switch to conversation view on mobile
-
         if (chat.type === 'group') {
             socket.emit('get_group_history', chat.id);
+            const roomId = `group-${chat.id}`;
+            const roomMessages = messages[roomId] || [];
+            if (roomMessages.length > 0) {
+                const lastMessageId = roomMessages[roomMessages.length - 1].id;
+                setLastRead(prev => ({ ...prev, [roomId]: lastMessageId }));
+            }
         } else {
             socket.emit('get_chat_history', chat.username);
             const roomId = [username, chat.username].sort().join('--');
             socket.emit('mark_as_read', { roomId, readerUsername: username });
         }
-    };
-
-    const handleBackToList = () => {
-        setIsConversationVisible(false); // Switch back to chat list view
     };
 
     const handleSendMessage = (messageContent, type = 'text') => {
@@ -110,8 +108,6 @@ const ChatLayout = ({ username }) => {
         setIsCreatingGroup(false);
     };
 
-    const currentRoomId = activeChat ? (activeChat.type === 'group' ? `group-${activeChat.id}` : [username, activeChat.username].sort().join('--')) : null;
-
     const usersWithChatInfo = onlineUsers.map(user => {
         const roomId = [username, user.username].sort().join('--');
         const roomMessages = messages[roomId] || [];
@@ -126,34 +122,39 @@ const ChatLayout = ({ username }) => {
         const roomId = `group-${group.id}`;
         const roomMessages = messages[roomId] || [];
         const lastMessage = roomMessages[roomMessages.length - 1];
-        const unreadCount = roomMessages.filter(msg => msg.author !== username).length; // Simplified for now
+        const lastReadMessageId = lastRead[roomId] || 0;
+        const unreadCount = roomMessages.filter(msg => msg.id > lastReadMessageId && msg.author !== username).length;
         let lastMessagePreview = 'No messages yet';
         if (lastMessage) { lastMessagePreview = lastMessage.type === 'image' ? '📷 Image' : `${lastMessage.author}: ${lastMessage.message}`; }
         return { ...group, lastMessage: lastMessagePreview, timestamp: lastMessage ? lastMessage.time : '', unreadCount };
     });
 
+    const layoutProps = {
+        users: usersWithChatInfo,
+        groups: groupsWithChatInfo,
+        onSelectChat: handleSelectChat,
+        activeChat,
+        messages,
+        currentUser: username,
+        onSendMessage: handleSendMessage,
+        typingUsers,
+        socket,
+        onNewGroup: () => setIsCreatingGroup(true),
+    };
+
     return (
-        <div className={isConversationVisible ? 'conversation-visible' : ''}>
+        <>
             {isCreatingGroup && <CreateGroupModal onlineUsers={onlineUsers} onCreateGroup={handleCreateGroup} onClose={() => setIsCreatingGroup(false)} />}
-            <ChatList
-                users={usersWithChatInfo}
-                groups={groupsWithChatInfo}
-                onSelectChat={handleSelectChat}
-                activeChatId={activeChat?.id}
-                onNewGroup={() => setIsCreatingGroup(true)}
-            />
-            <Conversation
-                chat={activeChat}
-                messages={messages[currentRoomId] || []}
-                currentUser={username}
-                onSendMessage={handleSendMessage}
-                typingUsers={typingUsers}
-                socket={socket}
-                onBack={handleBackToList}
-            />
-            <ChatDetail chat={activeChat} />
-        </div>
+            <AppLayouts {...layoutProps} />
+        </>
     );
 };
 
-export default ChatLayout;
+// This component uses the hook to decide which layout to render
+const AppLayouts = (props) => {
+    const isMobile = useMediaQuery('(max-width: 900px)');
+
+    return isMobile ? <MobileLayout {...props} /> : <DesktopLayout {...props} />;
+};
+
+export default ChatContainer;

@@ -48,7 +48,8 @@ body {
   overflow: hidden;
 }
 
-/* --- DESKTOP FIRST LAYOUT --- */
+/* --- BASE LAYOUT --- */
+/* This now applies to both mobile and desktop layouts */
 .app-layout {
   display: flex;
   width: 100vw;
@@ -80,58 +81,64 @@ body {
   flex-direction: column;
 }
 
-.back-button {
+/* --- Mobile-Specific Layout (from MobileLayout.jsx) --- */
+.mobile-layout {
+  overflow-x: hidden;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.mobile-layout>.chat-list-panel {
+  width: 100%;
+  min-width: 100%;
+  border-right: none;
+  position: absolute;
+  z-index: 10;
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(0);
+}
+
+.mobile-layout>.conversation-panel {
+  width: 100%;
+  min-width: 100%;
+  position: absolute;
+  z-index: 20;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+.mobile-layout.conversation-visible .chat-list-panel {
+  transform: translateX(-100%);
+}
+
+.mobile-layout.conversation-visible .conversation-panel {
+  transform: translateX(0);
+}
+
+.mobile-layout .chat-detail-panel {
   display: none;
 }
 
-/* --- MOBILE OVERRIDES --- */
+.back-button {
+  display: none;
+  /* Hidden by default */
+  background: none;
+  border: none;
+  color: var(--icon-color);
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
 @media (max-width: 900px) {
-  .app-layout {
-    overflow-x: hidden;
-    position: relative;
-  }
-
-  .chat-list-panel {
-    width: 100%;
-    min-width: 100%;
-    border-right: none;
-    position: absolute;
-    z-index: 10;
-    transition: transform 0.3s ease-in-out;
-    transform: translateX(0);
-  }
-
-  .conversation-panel {
-    width: 100%;
-    min-width: 100%;
-    position: absolute;
-    z-index: 20;
-    transform: translateX(100%);
-    transition: transform 0.3s ease-in-out;
-  }
-
-  .conversation-visible .chat-list-panel {
-    transform: translateX(-100%);
-  }
-
-  .conversation-visible .conversation-panel {
-    transform: translateX(0);
-  }
-
-  .chat-detail-panel {
-    display: none;
-  }
-
   .back-button {
     display: block;
-    background: none;
-    border: none;
-    color: var(--icon-color);
-    font-size: 1.5rem;
-    cursor: pointer;
-    margin-right: 10px;
   }
+
+  /* Only show on mobile screens */
 }
+
 
 /* --- ALL OTHER COMPONENT STYLES --- */
 .panel-header {
