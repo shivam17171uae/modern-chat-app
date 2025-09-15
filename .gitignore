@@ -6,16 +6,14 @@
 # Build folder
 /client/dist
 
-# Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
 # Database file
 /server/chat.db
 
 # Uploaded files
 /server/uploads
 
-# Environment variables
+# Log files & environment variables
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 .env
