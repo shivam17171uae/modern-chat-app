@@ -29,8 +29,10 @@ const MobileLayout = ({
         ? (activeChat.type === 'group' ? `group-${activeChat.id}` : [currentUser, activeChat.username].sort().join('--'))
         : null;
 
+    // --- THIS IS THE FIX ---
+    // We add the "mobile-layout" class to the main div so the CSS can target it.
     return (
-        <div className={isConversationVisible ? 'conversation-visible' : ''}>
+        <div className={`mobile-layout ${isConversationVisible ? 'conversation-visible' : ''}`}>
             <ChatList
                 users={users}
                 groups={groups}
