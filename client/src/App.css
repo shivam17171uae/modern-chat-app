@@ -45,21 +45,95 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  overflow: hidden;
 }
 
-/* --- MAIN LAYOUT --- */
+/* --- DESKTOP FIRST LAYOUT --- */
 .app-layout {
   display: flex;
-  width: 95vw;
-  height: 95vh;
-  max-width: 1600px;
+  width: 100vw;
+  height: 100vh;
   background-color: var(--panel-bg);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  border: 1px solid var(--border-color);
 }
 
+.chat-list-panel {
+  width: 30%;
+  min-width: 300px;
+  max-width: 450px;
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.conversation-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-detail-panel {
+  width: 30%;
+  min-width: 300px;
+  max-width: 450px;
+  border-left: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.back-button {
+  display: none;
+}
+
+/* --- MOBILE OVERRIDES --- */
+@media (max-width: 900px) {
+  .app-layout {
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  .chat-list-panel {
+    width: 100%;
+    min-width: 100%;
+    border-right: none;
+    position: absolute;
+    z-index: 10;
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(0);
+  }
+
+  .conversation-panel {
+    width: 100%;
+    min-width: 100%;
+    position: absolute;
+    z-index: 20;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .conversation-visible .chat-list-panel {
+    transform: translateX(-100%);
+  }
+
+  .conversation-visible .conversation-panel {
+    transform: translateX(0);
+  }
+
+  .chat-detail-panel {
+    display: none;
+  }
+
+  .back-button {
+    display: block;
+    background: none;
+    border: none;
+    color: var(--icon-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+}
+
+/* --- ALL OTHER COMPONENT STYLES --- */
 .panel-header {
   display: flex;
   align-items: center;
@@ -68,17 +142,6 @@ body {
   background-color: var(--panel-bg-alt);
   border-bottom: 1px solid var(--border-color);
   min-height: 40px;
-}
-
-/* --- CHAT LIST (Left Panel) --- */
-.chat-list-panel {
-  width: 30%;
-  min-width: 300px;
-  max-width: 450px;
-  border-right: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  background-color: var(--panel-bg);
 }
 
 .profile-header {
@@ -93,10 +156,6 @@ body {
   display: flex;
   align-items: center;
   gap: 15px;
-}
-
-.profile-avatar {
-  font-size: 2rem;
 }
 
 .header-actions {
@@ -152,17 +211,9 @@ body {
   border-bottom: 1px solid var(--border-color);
 }
 
-.chat-list-item:hover {
-  background-color: var(--active-chat-bg);
-}
-
+.chat-list-item:hover,
 .chat-list-item.active {
   background-color: var(--active-chat-bg);
-}
-
-.chat-avatar {
-  font-size: 2.2rem;
-  margin-right: 15px;
 }
 
 .chat-details {
@@ -212,27 +263,10 @@ body {
   font-weight: bold;
 }
 
-/* --- CONVERSATION (Center Panel) --- */
-.conversation-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--bg-color);
-}
-
 .header-info {
   display: flex;
   align-items: center;
   gap: 15px;
-}
-
-.header-avatar {
-  font-size: 2.2rem;
-}
-
-.typing-indicator {
-  color: var(--unread-badge-bg);
-  font-size: 0.85rem;
 }
 
 .header-icons {
@@ -251,24 +285,13 @@ body {
   gap: 12px;
 }
 
-.date-separator span {
-  background-color: var(--panel-bg-alt);
-  padding: 4px 12px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
 .message-bubble {
   max-width: 65%;
   padding: 8px 12px;
   border-radius: 8px;
   font-size: 0.9rem;
   position: relative;
-}
-
-.message-bubble p {
-  margin: 0;
+  word-wrap: break-word;
 }
 
 .message-bubble.sent {
@@ -302,7 +325,14 @@ body {
 
 .read-receipt {
   margin-left: 5px;
+}
+
+.read-receipt.read {
   color: var(--text-hyperlink);
+}
+
+.message-input-container {
+  position: relative;
 }
 
 .message-input-area {
@@ -342,117 +372,64 @@ body {
   cursor: pointer;
 }
 
-/* --- CHAT DETAIL (Right Panel) --- */
-.chat-detail-panel {
-  width: 30%;
-  min-width: 300px;
-  max-width: 450px;
-  border-left: 1px solid var(--border-color);
-  background-color: var(--panel-bg);
+.avatar-wrapper {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #e9edef;
 }
 
-/* Styles for ChatDetail remain largely the same, but will now use CSS variables */
-.close-icon {
-  font-size: 1.5rem;
-  color: var(--icon-color);
-  cursor: pointer;
+.chat-list-item .avatar-wrapper {
+  min-width: 48px;
+  height: 48px;
+  margin-right: 15px;
 }
 
-.detail-content {
-  padding: 20px;
-  overflow-y: auto;
-  flex-grow: 1;
+.profile-header .avatar-wrapper,
+.panel-header .avatar-wrapper {
+  min-width: 40px;
+  height: 40px;
 }
 
-.group-info {
-  text-align: center;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.group-avatar {
-  font-size: 5rem;
-  margin-bottom: 10px;
-}
-
-.group-description {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-.detail-section {
-  padding: 20px 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.detail-section h5 {
-  margin: 0 0 10px;
-}
-
-.detail-section a {
+.message-link {
   color: var(--text-hyperlink);
+  text-decoration: underline;
+}
+
+.message-link:hover {
   text-decoration: none;
 }
 
-.member-list {
+.emoji-picker-wrapper {
+  position: absolute;
+  bottom: 100%;
+  left: 10px;
+  z-index: 10;
+}
+
+.welcome-screen {
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 10px;
+  text-align: center;
+  color: var(--text-secondary);
+  flex-grow: 1;
 }
 
-.member-avatar {
-  font-size: 1.5rem;
-}
-
-.member-count {
+.no-users-text {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-secondary);
   font-size: 0.9rem;
-  color: var(--text-secondary);
-  font-weight: bold;
 }
 
-.media-tabs {
-  margin-bottom: 10px;
-}
-
-.media-tabs button {
-  background: none;
-  border: none;
-  padding: 8px 12px;
-  cursor: pointer;
-  color: var(--text-secondary);
-}
-
-.media-tabs button.active {
-  color: var(--text-hyperlink);
-  border-bottom: 2px solid var(--text-hyperlink);
-}
-
-.media-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-}
-
-.media-item {
-  width: 100%;
-  padding-bottom: 100%;
-  background-color: var(--panel-bg-alt);
+.message-image {
+  max-width: 100%;
   border-radius: 8px;
-}
-
-.theme-toggle-button {
-  background: none;
-  border: none;
-  color: var(--icon-color);
-  font-size: 1.2rem;
   cursor: pointer;
-  display: flex;
-  align-items: center;
 }
-
-/* --- Add these styles at the end of App.css --- */
 
 .typing-indicator {
   padding: 5px 20px;
@@ -466,33 +443,14 @@ body {
 
 .typing-indicator-placeholder {
   height: 25px;
-  /* Same total height as the indicator to prevent layout shift */
   padding: 5px 20px;
 }
 
-.welcome-screen {
+.list-section-header {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  text-align: center;
-  color: var(--text-secondary);
-}
-
-.no-users-text {
-  padding: 20px;
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-.read-receipt.read {
-  color: var(--text-hyperlink);
-}
-
-.message-image {
-  max-width: 100%;
-  border-radius: 8px;
-  cursor: pointer;
+  padding-right: 16px;
 }
 
 .modal-overlay {
@@ -567,80 +525,4 @@ body {
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
-}
-
-.list-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-right: 16px;
-}
-
-/* This block of CSS will only apply if the screen width is 768px or less */
-@media (max-width: 768px) {
-  .app-layout {
-    /* Allow the layout to scroll horizontally if needed, though we'll try to avoid it */
-    overflow-x: hidden;
-    position: relative;
-    /* Needed for positioning child elements */
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
-  }
-
-  .chat-list-panel {
-    width: 100%;
-    min-width: 100%;
-    border-right: none;
-    /* This makes the panel take up the full view */
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 10;
-    transition: transform 0.3s ease-in-out;
-  }
-
-  .conversation-panel {
-    width: 100%;
-    min-width: 100%;
-    /* Position this panel off-screen to the right initially */
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 20;
-    /* Sit on top of the chat list */
-    transform: translateX(100%);
-    transition: transform 0.3s ease-in-out;
-  }
-
-  /* NEW CLASS: This class will be added in JS to show the conversation view */
-  .conversation-visible .chat-list-panel {
-    transform: translateX(-100%);
-  }
-
-  .conversation-visible .conversation-panel {
-    transform: translateX(0);
-  }
-
-  /* Hide the details panel completely on mobile */
-  .chat-detail-panel {
-    display: none;
-  }
-
-  /* We need a back button to get from the conversation to the chat list */
-  .back-button {
-    display: block;
-    /* Show the button on mobile */
-    background: none;
-    border: none;
-    color: var(--icon-color-alt);
-    font-size: 1.5rem;
-    cursor: pointer;
-    margin-right: 10px;
-  }
-}
-
-/* Hide the back button on desktop by default */
-.back-button {
-  display: none;
 }

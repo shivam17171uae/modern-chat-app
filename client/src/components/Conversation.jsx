@@ -7,6 +7,9 @@ import EmojiPicker from 'emoji-picker-react';
 import Linkify from 'react-linkify';
 import Jdenticon from 'react-jdenticon';
 
+// This is a helper constant. We need to know the SERVER_URL for file uploads.
+const SERVER_URL = import.meta.env.PROD ? '' : 'http://localhost:8080';
+
 const ReadReceipt = ({ status }) => {
     if (status === 'read') return <BsCheck2All className="read-receipt read" />;
     if (status === 'delivered') return <BsCheck2All className="read-receipt" />;
