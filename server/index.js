@@ -46,7 +46,6 @@ const getSocketIdByUsername = (username) => {
     return null;
 }
 
-// --- Socket.IO Logic ---
 io.on('connection', (socket) => {
     socket.on('join_chat', async (username) => {
         socket.username = username;
@@ -60,7 +59,6 @@ io.on('connection', (socket) => {
             socket.emit('user_groups', parsedGroups);
             parsedGroups.forEach(group => socket.join(`group-${group.id}`));
 
-            // Proactive delivery update
             const undeliveredMessages = await db.all(`SELECT DISTINCT author, roomId FROM messages WHERE roomId LIKE ? AND status = 'sent'`, [`%--${username}`, `${username}--%`]);
             if (undeliveredMessages.length > 0) {
                 await db.run(`UPDATE messages SET status = 'delivered' WHERE roomId LIKE ? AND status = 'sent'`, [`%${username}%`]);
@@ -177,7 +175,7 @@ io.on('connection', (socket) => {
     });
 });
 
-app.get('*', (req, res) => {
+app.get(/^(?!\/api|\/uploads|\/socket\.io).*$/, (req, res) => {
     res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
